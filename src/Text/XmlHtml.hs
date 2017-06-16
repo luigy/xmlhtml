@@ -57,6 +57,7 @@ module Text.XmlHtml (
 
     -- * Rendering
     render,
+    renderText,
     XMLR.renderXmlFragment,
     HTML.renderHtmlFragment,
     renderDocType
@@ -65,6 +66,8 @@ module Text.XmlHtml (
 ------------------------------------------------------------------------------
 import           Blaze.ByteString.Builder (Builder)
 import           Data.ByteString (ByteString)
+
+import qualified Data.Text.Internal.Builder as TB
 
 import           Text.XmlHtml.Common
 import           Text.XmlHtml.TextParser
@@ -105,6 +108,9 @@ render :: Document -> Builder
 render (XmlDocument  e dt ns) = XMLR.render  e dt ns
 render (HtmlDocument e dt ns) = XMLR.render  e dt ns -- TODO
 
+renderText :: Document -> TB.Builder
+renderText (XmlDocument  e dt ns) = HTML.render  e dt ns -- TODO
+renderText (HtmlDocument e dt ns) = HTML.render  e dt ns
 
 renderDocType :: Encoding -> Maybe DocType -> Builder
 renderDocType = XMLR.docTypeDecl
