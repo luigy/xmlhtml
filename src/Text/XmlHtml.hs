@@ -54,6 +54,7 @@ module Text.XmlHtml (
     -- * Parsing
     parseXML,
     parseHTML,
+    parseTextHTML,
 
     -- * Rendering
     render,
@@ -78,7 +79,7 @@ import qualified Text.XmlHtml.XML.Render as XMLR
 import qualified Text.XmlHtml.HTML.Parse as HTML
 import qualified Text.XmlHtml.HTML.Render as HTML
 
-
+import Data.Text (Text)
 ------------------------------------------------------------------------------
 -- | Parses the given XML fragment.
 parseXML :: String
@@ -100,6 +101,14 @@ parseHTML :: String
           -> Either String Document
           -- ^ The document or an error message
 parseHTML = parse HTML.docFragment
+
+parseTextHTML :: String
+              -- ^ Name of document source (perhaps a filename) for error messages
+              -> Text
+              -- ^ Document contents
+              -> Either String Document
+              -- ^ The document or an error message
+parseTextHTML = parseText (HTML.docFragment UTF8)
 
 
 ------------------------------------------------------------------------------
