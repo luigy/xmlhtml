@@ -4,15 +4,18 @@
 
 module Text.XmlHtml.HTML.Render where
 
-import           Blaze.ByteString.Builder
+-- import           Blaze.ByteString.Builder
+import           Data.Char
+import           Data.Text.Internal.Builder hiding (fromText)
+import qualified Data.Text.Internal.Builder as TB
 import           Control.Applicative
 import           Data.Maybe
 import qualified Text.Parsec as P
-import           Text.XmlHtml.Common
+import           Text.XmlHtml.Common hiding (fromText)
 import           Text.XmlHtml.TextParser
 import           Text.XmlHtml.HTML.Meta
 import qualified Text.XmlHtml.HTML.Parse as P
-import           Text.XmlHtml.XML.Render (docTypeDecl, entity)
+-- import           Text.XmlHtml.XML.Render (docTypeDecl, entity)
 
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -23,6 +26,9 @@ import qualified Data.HashMap.Strict as M
 #if !MIN_VERSION_base(4,8,0)
 import           Data.Monoid
 #endif
+
+fromText :: a -> Text -> Builder
+fromText _ = TB.fromText
 
 ------------------------------------------------------------------------------
 -- | And, the rendering code.
@@ -153,3 +159,48 @@ attribute e tb (n,v)
         explicit = case M.lookup tb explicitAttributes of
                      Nothing -> False
                      Just ns -> nbase `S.member` ns
+
+entity :: Encoding -> Char -> Builder
+entity e '&'  = fromText e "&amp;"
+entity e '<'  = fromText e "&lt;"
+entity e '>'  = fromText e "&gt;"
+entity e '\"' = fromText e "&quot;"
+entity e c    = fromText e "&#"
+                `mappend` fromText e (T.pack (show (ord c)))
+                `mappend` fromText e ";"
+
+docTypeDecl :: Encoding -> Maybe DocType -> Builder
+docTypeDecl _ Nothing                      = mempty
+docTypeDecl e (Just (DocType tag ext int)) = fromText e "<!DOCTYPE "
+                                   `mappend` fromText e tag
+                                   `mappend` externalID e ext
+                                   `mappend` internalSubset e int
+                                   `mappend` fromText e ">\n"
+
+externalID :: Encoding -> ExternalID -> Builder
+externalID _ NoExternalID     = mempty
+externalID e (System sid)     = fromText e " SYSTEM "
+                                `mappend` sysID e sid
+externalID e (Public pid sid) = fromText e " PUBLIC "
+                                `mappend` pubID e pid
+                                `mappend` fromText e " "
+                                `mappend` sysID e sid
+
+sysID :: Encoding -> Text -> Builder
+sysID e sid | not ("\'" `T.isInfixOf` sid) = fromText e "\'"
+                                             `mappend` fromText e sid
+                                             `mappend` fromText e "\'"
+            | not ("\"" `T.isInfixOf` sid) = fromText e "\""
+                                             `mappend` fromText e sid
+                                             `mappend` fromText e "\""
+            | otherwise               = error "SYSTEM id is invalid"
+
+internalSubset :: Encoding -> InternalSubset -> Builder
+internalSubset _ NoInternalSubset = mempty
+internalSubset e (InternalText t) = fromText e " " `mappend` fromText e t
+
+pubID :: Encoding -> Text -> Builder
+pubID e sid | not ("\"" `T.isInfixOf` sid) = fromText e "\""
+                                             `mappend` fromText e sid
+                                             `mappend` fromText e "\""
+            | otherwise               = error "PUBLIC id is invalid"

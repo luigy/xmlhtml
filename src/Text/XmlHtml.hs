@@ -103,7 +103,7 @@ parseHTML = parse HTML.docFragment
 -- | Renders a 'Document'.
 render :: Document -> Builder
 render (XmlDocument  e dt ns) = XMLR.render  e dt ns
-render (HtmlDocument e dt ns) = HTML.render e dt ns
+render (HtmlDocument e dt ns) = XMLR.render  e dt ns -- TODO
 
 
 renderDocType :: Encoding -> Maybe DocType -> Builder
