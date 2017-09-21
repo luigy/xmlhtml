@@ -810,9 +810,9 @@ Library
   Exposed-modules:     Text.XmlHtml,
                        Text.XmlHtml.Cursor,
                        Text.XmlHtml.HTML.Meta,
-                       Text.Blaze.Renderer.XmlHtml
+                       Text.Blaze.Renderer.XmlHtml,
 
-  Other-modules:       Text.XmlHtml.Common,
+                       Text.XmlHtml.Common,
                        Text.XmlHtml.TextParser,
                        Text.XmlHtml.XML.Parse,
                        Text.XmlHtml.XML.Render,
